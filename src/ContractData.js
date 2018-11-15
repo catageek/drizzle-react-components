@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import EqualArray from 'equal-array';
 
 /*
  * Create component.
@@ -7,14 +8,23 @@ import React, { Component } from 'react';
 class ContractData extends Component {
 	constructor(props) {
 		super(props);
-
-		this.methodArgs = this.props.methodArgs ? this.props.methodArgs : [];
 		this.state = { dataKey: null };
+		this.eq = new EqualArray();
 	}
 
 	componentDidMount() {
-		const dataKey = this.props.drizzle.contracts[this.props.contract].methods[this.props.method].cacheCall(...this.methodArgs);
+		const methodArgs = this.props.methodArgs ? this.props.methodArgs : [];
+		const dataKey = this.props.drizzle.contracts[this.props.contract].methods[this.props.method].cacheCall(...methodArgs);
 		this.setState({ dataKey: dataKey });
+	}
+
+	componentDidUpdate(prevProps) {
+		const methodArgs = this.props.methodArgs ? this.props.methodArgs : [];
+		const prevMethodArgs = prevProps.methodArgs ? prevProps.methodArgs : [];
+		if (this.eq(methodArgs) !== this.eq(prevMethodArgs)) {
+			const dataKey = this.props.drizzle.contracts[this.props.contract].methods[this.props.method].cacheCall(...methodArgs);
+			this.setState({ dataKey: dataKey });
+		}
 	}
 
 	render() {
