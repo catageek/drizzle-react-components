@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import InputValidator from './InputValidator';
 
 /*
  * Create component.
@@ -55,14 +56,19 @@ class ContractForm extends Component {
 
   handleSubmit() {
     this.setState((prevState) => {
-      // check if no error is left
+
+      // call callback function
+      let {inputs} = this.props.cb ? this.props.cb(prevState.inputs) : prevState.inputs;
+
       let error = null;
-      for (let input in prevState.inputs) {
-        if (prevState.inputs[input].error !== '') {
+      // check if no error is left
+      for (let input in inputs) {
+        if (inputs[input].error !== '') {
           error = "There are some errors in the formulary. Please fix them before retrying";
           break;
         }
       }
+
       if (error) {
         return ({error: error});
       }
@@ -70,15 +76,12 @@ class ContractForm extends Component {
       if (prevState.error !== '') {
         return({error: ''});
       }
-      // call callback function
-      let state = this.props.cb ? this.props.cb(prevState.inputs) : prevState.inputs;
-
       // If an input is of type bytes32 then convert the entered text to hex, if it isn't already valid hex, using web3.
       const values = this.inputs.map((input, i) => {
-        if (input.type === 'bytes32' && !this.props.drizzle.web3.utils.isHex(state[input.name].value)) { 
-          return this.props.drizzle.web3.utils.toHex(state[input.name].value);
+        if (input.type === 'bytes32' && !this.props.drizzle.web3.utils.isHex(inputs[input.name].value)) { 
+          return this.props.drizzle.web3.utils.toHex(inputs[input.name].value);
         } else {
-          return state[input.name].value;
+          return inputs[input.name].value;
         }
       });
 
@@ -95,18 +98,12 @@ class ContractForm extends Component {
 
   handleInputChange(event) {
     event.persist();
-    this.setState((prevState) => {
+    this.setState((prevState, props) => {
       return(this.inputs.reduce((accumulator, input) => {
-        let error = '';
         if (input.name === event.target.name) {
-          if (input.type === 'address') {
-            const missing = 42 - event.target.value.length;
-            error = missing ? 'number of chars missing: ' + missing:'';
-            if (event.target.value.length === 42 && !this.props.drizzle.web3.utils.checkAddressChecksum(event.target.value)) {
-              error = "Please enter an address with valid checksum";
-            }
-          }
-          return Object.assign(accumulator, { inputs: { ...prevState.inputs, [event.target.name]: { value: event.target.value, error: error }}});
+          // Call Input Validator
+          let {value, error} = InputValidator(input.type, event.target.value, props);
+          return Object.assign(accumulator, { inputs: { ...prevState.inputs, [event.target.name]: { value: value, error: error }}});
         }
         return accumulator;
       }, prevState));
