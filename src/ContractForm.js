@@ -55,34 +55,36 @@ class ContractForm extends Component {
   }
 
   handleSubmit() {
-    this.setState((prevState) => {
+    this.setState((prevState, props) => {
 
       // call callback function
       let {inputs} = this.props.cb ? this.props.cb(prevState.inputs) : prevState.inputs;
 
+      let state = this.inputs.reduce((accumulator, input) => {
+        // Call Input Validator
+        let {value, error} = InputValidator(input.type, inputs[input.name].value, props);
+        return Object.assign(accumulator, { inputs: { ...inputs, [input.name]: { value: value, error: error }}});
+      }, prevState);
+
       let error = null;
       // check if no error is left
-      for (let input in inputs) {
-        if (inputs[input].error !== '') {
+      for (let input in state.inputs) {
+        if (state.inputs[input].error !== '') {
           error = "There are some errors in the formulary. Please fix them before retrying";
           break;
         }
       }
 
       if (error) {
-        return ({error: error});
+        return ({...state, error: error});
       }
       // no error
-      if (prevState.error !== '') {
-        return({error: ''});
+      if (state.error !== '') {
+        state.error = '';
       }
-      // If an input is of type bytes32 then convert the entered text to hex, if it isn't already valid hex, using web3.
-      const values = this.inputs.map((input, i) => {
-        if (input.type === 'bytes32' && !this.props.drizzle.web3.utils.isHex(inputs[input.name].value)) { 
-          return this.props.drizzle.web3.utils.toHex(inputs[input.name].value);
-        } else {
-          return inputs[input.name].value;
-        }
+
+      let values = Object.keys(state.inputs).map((key) => {
+        return state.inputs[key].value;
       });
 
       if (this.props.sendArgs) {
@@ -91,7 +93,7 @@ class ContractForm extends Component {
 
       this.props.drizzle.contracts[this.props.contract].methods[this.props.method].cacheSend(...values);
 
-      return prevState;
+      return state;
     });
 
   }
