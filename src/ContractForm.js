@@ -22,25 +22,27 @@ class ContractForm extends Component {
     for (var i = 0; i < abi.length; i++) {
         if (abi[i].name === this.props.method) {
             this.inputs = abi[i].inputs;
-
-            for (var j = 0; j < this.inputs.length; j++) {
-                initialState.inputs[this.inputs[j].name] = { value: '', error: ''};
-            }
-
-            break;
+           break;
         }
     }
+
+    let inputs = props.inputs ? props.inputs : this.inputs;
+    for (var j = 0; j < inputs.length; j++) {
+        initialState.inputs[inputs[j].name] = { value: '', error: ''};
+    }
+
     initialState.error = '';
     this.state = initialState;
   }
 
   render() {
+    let inputs = this.props.inputs ? this.props.inputs : this.inputs;
     return (
       <form className='pure-form pure-form-stacked'>
         <strong>{!this.props.hideMethod ? this.props.method + ': ' : null}</strong>
-        {this.inputs.map((input, index) => {            
-          var inputType = this.translateType(input.type)
-          var inputLabel = this.props.labels ? this.props.labels[index] : input.name
+        {inputs.map((input, index) => {            
+          var inputType = this.translateType(input.type);
+          var inputLabel = this.props.labels ? this.props.labels[index] : input.name;
           return (
             <React.Fragment key={input.name}>
               <div><input type={inputType} name={input.name} value={this.state.inputs[input.name].value} placeholder={inputLabel} onChange={this.handleInputChange} /></div>

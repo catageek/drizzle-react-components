@@ -39,7 +39,9 @@ All components require a `drizzle` and `drizzleState` props. See the [drizzle-re
 
 `labels` (array) Custom labels; will follow ABI input ordering. Useful for friendlier names. EX: "to" becoming "Recipient Address".
 
-`cb` (function(inputs)) Callback function called when the form is submitted. the argument `inputs` is an object where the keys are the name of the arguments, and the value is an object with two properties `value` and `error`. The callback function may modify the properties of `inputs` and must return the object. The form will not be submitted unless all `error` properties are empty strings. All transformations in the inputs (keccak256, message signature) may be done in the callback.
+`inputs` (array) inputs of the function in ABI-style. If not defined, default to contract ABI. This property allows to adapt the form for complex operations.
+
+`cb` (function(inputs)) Callback function called when the form is submitted. the argument `inputs` is an object where the keys are the name of the arguments, and the value is an object with two properties `value` and `error`. The callback function may modify the properties of `inputs` and must return an object mapping the contract ABI. The form will not be submitted unless all `error` properties are empty strings. All transformations in the inputs (keccak256, message signature) may be done in the callback.
 
 ## Example Usage
 
